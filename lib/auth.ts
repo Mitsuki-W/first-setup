@@ -1,10 +1,10 @@
 import { betterAuth } from "better-auth"; // better-authライブラリから認証機能の本体をインポート
-import { nanoid } from "nanoid"; // ユニークなIDを生成するためのnanoidライブラリをインポート
 import { drizzleAdapter } from "better-auth/adapters/drizzle"; // DrizzleORMとbetter-authを連携させるアダプタをインポート
 import { nextCookies } from "better-auth/next-js"; // Next.jsのクッキー処理を行うプラグインをインポート
+import { nanoid } from "nanoid"; // ユニークなIDを生成するためのnanoidライブラリをインポート
 import { db } from "@/db"; // プロジェクトのデータベース接続インスタンスをインポート
-import { getBaseURL } from "@/lib/get-base-url"; // ベースURLを取得するユーティリティ関数をインポート
 import * as schema from "@/db/schemas/auth"; // 認証関連のデータベーススキーマ定義（users、sessionsなど）をインポート
+import { getBaseURL } from "@/lib/get-base-url"; // ベースURLを取得するユーティリティ関数をインポート
 
 export const auth = betterAuth({
   // 認証システムのインスタンスを作成してエクスポート
