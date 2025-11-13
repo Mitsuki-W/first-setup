@@ -1,25 +1,33 @@
 name: マイグレーション
 
 on:
-    push:
-        branches:
-            - main
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
 
 jobs:
-    apply_migrations:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                node-version: '22.21.1'
-            - name: Enable Corepack
-              run: corepack enable pnpm
-            - name: Install dependencies
-              run: pnpm install
-            - name: Apply migrations
-              run: pnpm drizzle:migrate
-              env:
-                DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  apply_migrations:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '22.21.1'
+
+        - name: Enable Corepack
+          run: corepack enable pnpm
+
+        - name: Install dependencies
+          run: pnpm install
+            
+        - name: Apply migrations
+          run: pnpm drizzle:migrate
+          env:
+            DATABASE_URL: ${{ secrets.DATABASE_URL }}
