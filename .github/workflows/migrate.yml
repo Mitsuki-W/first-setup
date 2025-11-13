@@ -11,10 +11,14 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v3
-            - name: Install dependencies & tooling
-              run : |
-                npm install -g pnpm
-                pnpm install
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: '22.21.1'
+            - name: Enable Corepack
+              run: corepack enable pnpm
+            - name: Install dependencies
+              run: pnpm install
             - name: Apply migrations
               run: pnpm drizzle:migrate
               env:
