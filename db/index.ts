@@ -2,6 +2,7 @@ import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as authSchema from "./schemas/auth";
+import * as productsSchema from "./schemas/products";
 
 config({ path: ".env" });
 
@@ -10,5 +11,6 @@ export const db = drizzle({
   client,
   schema: {
     ...authSchema,
+    ...productsSchema,
   },
 });
