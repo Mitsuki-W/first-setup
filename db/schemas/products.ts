@@ -14,13 +14,14 @@ export const products = pgTable("products", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
+  deletedAt: timestamp("deleted_at"), // 論理削除用: NULL = 未削除、日付あり = 削除済み
 });
 
 /**
  * 商品作成時のバリデーションスキーマ
  * - name: 必須の文字列（Drizzle 定義から自動反映）
  * - price: 文字列でもOK → number に変換して、0以上の整数に制限
- * - id / createdAt / updatedAt は自動なので除外
+ * - id / createdAt / updatedAt / deletedAt は自動なので除外
  */
 export const insertProductSchema = createInsertSchema(products, {
   price: z.coerce.number().int().nonnegative(),
@@ -28,6 +29,7 @@ export const insertProductSchema = createInsertSchema(products, {
   id: true,
   createdAt: true,
   updatedAt: true,
+  deletedAt: true, // 削除フラグはフォームから入力しない
 });
 
 /**

@@ -8,7 +8,7 @@
  */
 "use server";
 
-import { eq } from "drizzle-orm"; // Drizzle で SQL の WHERE 条件を書くための関数（例: WHERE id = 'abc123' → eq(products.id, 'abc123')）
+import { eq, isNull } from "drizzle-orm"; // Drizzle で SQL の WHERE 条件を書くための関数（例: WHERE id = 'abc123' → eq(products.id, 'abc123')）
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { insertProductSchema, products } from "@/db/schemas/products";
@@ -35,15 +35,17 @@ export type FormState = {
  *
  * 処理フロー:
  * 1. データベースからproductsテーブルの全レコードを取得
- * 2. createdAt（作成日時）の昇順でソート
- * 3. 成功時: { success: true, data: 商品配列 } を返す
- * 4. エラー時: エラーをログ出力し、{ success: false, error: エラーメッセージ } を返す
+ * 2. 削除済み商品を除外（deletedAt が NULL のもののみ）
+ * 3. createdAt（作成日時）の昇順でソート
+ * 4. 成功時: { success: true, data: 商品配列 } を返す
+ * 5. エラー時: エラーをログ出力し、{ success: false, error: エラーメッセージ } を返す
  *
  * @returns 商品一覧の取得結果
  */
 export async function getProducts() {
   try {
     // データベースから商品一覧を取得（作成日時の古い順）
+    // 論理削除対応: deletedAt が NULL のもの（削除されていないもの）のみ取得
     /**
      * .select().from(table)のチェーン構文 → Drizzle
      * products.createdAt を直接参照してもコンパイルエラーが起きず、
@@ -57,6 +59,7 @@ export async function getProducts() {
     const allProducts = await db
       .select()
       .from(products)
+      .where(isNull(products.deletedAt)) // 削除されていないもののみ取得
       .orderBy(products.createdAt);
 
     return { success: true as const, data: allProducts };
@@ -122,25 +125,27 @@ export async function createProduct(
 }
 
 /**
- * 商品を削除（Server Action）
+ * 商品を削除（Server Action - 論理削除）
  *
- * 指定されたIDの商品をデータベースから削除する
+ * 指定されたIDの商品を論理削除する（deleted_at に現在時刻を設定）
  *
  * 処理フロー:
- * 1. 引数で受け取ったIDをもとに、商品を削除
- * 2. Drizzle ORM の eq() 関数で WHERE 条件を指定
- * 3. データベースから削除を実行
- * 4. revalidatePath("/") でトップページのキャッシュを無効化
- * 5. 成功/失敗の結果を返す
+ * 1. 引数で受け取ったIDをもとに、商品を論理削除
+ * 2. deleted_at カラムに現在時刻を設定（物理削除ではなく UPDATE）
+ * 3. revalidatePath("/") でトップページのキャッシュを無効化
+ * 4. 成功/失敗の結果を返す
  *
  * @param id - 削除する商品のID
  * @returns 削除結果 { success: true } または { success: false, error: エラーメッセージ }
  */
 export async function deleteProduct(id: string) {
   try {
-    // データベースから商品を削除
-    // eq(products.id, id) → WHERE id = '指定されたID'
-    await db.delete(products).where(eq(products.id, id));
+    // 論理削除: deleted_at に現在時刻を設定
+    // 物理削除（DELETE）ではなく、更新（UPDATE）でフラグを立てる
+    await db
+      .update(products)
+      .set({ deletedAt: new Date() })
+      .where(eq(products.id, id));
 
     // トップページのキャッシュを無効化（一覧を最新化）
     revalidatePath("/");
