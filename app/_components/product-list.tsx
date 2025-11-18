@@ -1,4 +1,5 @@
 import { DeleteButton } from "@/app/_components/delete-button";
+import { ProductEditDialog } from "@/app/_components/product-edit-dialog";
 import { getProducts } from "@/app/actions/products";
 
 /**
@@ -13,6 +14,7 @@ import { getProducts } from "@/app/actions/products";
  * - 商品名
  * - 価格
  * - 作成日時（フォーマット済み）
+ * - 編集ボタン（ProductEditDialog コンポーネント）
  * - 削除ボタン（DeleteButton コンポーネント）
  */
 export async function ProductList() {
@@ -72,10 +74,19 @@ export async function ProductList() {
                 {new Date(product.createdAt).toLocaleString("ja-JP")}
               </td>
               <td className="border border-gray-300 px-4 py-2 text-center">
-                <DeleteButton
-                  productId={product.id}
-                  productName={product.name}
-                />
+                <div className="flex justify-center gap-2">
+                  <ProductEditDialog
+                    product={{
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                    }}
+                  />
+                  <DeleteButton
+                    productId={product.id}
+                    productName={product.name}
+                  />
+                </div>
               </td>
             </tr>
           ))}

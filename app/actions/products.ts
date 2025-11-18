@@ -11,7 +11,11 @@
 import { eq, isNull } from "drizzle-orm"; // Drizzle で SQL の WHERE 条件を書くための関数（例: WHERE id = 'abc123' → eq(products.id, 'abc123')）
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { insertProductSchema, products } from "@/db/schemas/products";
+import {
+  insertProductSchema,
+  products,
+  updateProductSchema,
+} from "@/db/schemas/products";
 
 /**
  * フォーム状態の型定義
@@ -120,6 +124,70 @@ export async function createProduct(
     return {
       success: false,
       error: "商品の作成に失敗しました",
+    };
+  }
+}
+
+/**
+ * 商品を更新（Server Action + useFormState 用）
+ *
+ * 指定されたIDの商品情報を更新する
+ *
+ * 処理フロー:
+ * 1. FormDataから商品IDと更新内容を取得
+ * 2. Zodスキーマ（updateProductSchema）でバリデーション
+ * 3. データベースの商品情報を更新
+ * 4. revalidatePath("/") でトップページのキャッシュを無効化
+ * 5. 成功/失敗の結果を返す
+ *
+ * @param _prevState - 前回のフォーム状態（useFormStateが渡す。今回は使用しない）
+ * @param formData - フォームから送信されたデータ（id, name, priceを含む）
+ * @returns フォームの新しい状態（成功/失敗、メッセージ、エラー詳細）
+ */
+export async function updateProduct(
+  _prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  try {
+    // FormDataをオブジェクトに変換
+    const raw = Object.fromEntries(formData);
+
+    // IDを取得（hidden inputから送られてくる）
+    const id = raw.id as string | undefined;
+    if (!id) {
+      return {
+        success: false,
+        error: "商品IDが指定されていません",
+      };
+    }
+
+    // ID以外のデータをバリデーション
+    const { id: _removed, ...updateData } = raw;
+    const result = updateProductSchema.safeParse(updateData);
+
+    if (!result.success) {
+      // バリデーションエラー時: エラー詳細を返す
+      return {
+        success: false,
+        error: result.error.format(),
+      };
+    }
+
+    // データベースの商品情報を更新
+    await db.update(products).set(result.data).where(eq(products.id, id));
+
+    // トップページのキャッシュを無効化（再レンダリングで最新データを表示）
+    revalidatePath("/");
+
+    return {
+      success: true,
+      message: "商品を更新しました",
+    };
+  } catch (error) {
+    console.error("商品更新エラー:", error);
+    return {
+      success: false,
+      error: "商品の更新に失敗しました",
     };
   }
 }
