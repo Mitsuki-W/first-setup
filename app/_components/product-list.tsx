@@ -1,3 +1,4 @@
+import { DeleteButton } from "@/app/_components/delete-button";
 import { getProducts } from "@/app/actions/products";
 
 /**
@@ -12,6 +13,7 @@ import { getProducts } from "@/app/actions/products";
  * - 商品名
  * - 価格
  * - 作成日時（フォーマット済み）
+ * - 削除ボタン（DeleteButton コンポーネント）
  */
 export async function ProductList() {
   // サーバー側でServer Actionを呼び出してデータ取得
@@ -52,6 +54,9 @@ export async function ProductList() {
             <th className="border border-gray-300 px-4 py-2 text-left">
               登録日時
             </th>
+            <th className="border border-gray-300 px-4 py-2 text-center">
+              操作
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -65,6 +70,12 @@ export async function ProductList() {
               </td>
               <td className="border border-gray-300 px-4 py-2 text-sm text-gray-600">
                 {new Date(product.createdAt).toLocaleString("ja-JP")}
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-center">
+                <DeleteButton
+                  productId={product.id}
+                  productName={product.name}
+                />
               </td>
             </tr>
           ))}

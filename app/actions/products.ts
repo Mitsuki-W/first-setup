@@ -8,6 +8,7 @@
  */
 "use server";
 
+import { eq } from "drizzle-orm"; // Drizzle で SQL の WHERE 条件を書くための関数（例: WHERE id = 'abc123' → eq(products.id, 'abc123')）
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { insertProductSchema, products } from "@/db/schemas/products";
@@ -117,5 +118,36 @@ export async function createProduct(
       success: false,
       error: "商品の作成に失敗しました",
     };
+  }
+}
+
+/**
+ * 商品を削除（Server Action）
+ *
+ * 指定されたIDの商品をデータベースから削除する
+ *
+ * 処理フロー:
+ * 1. 引数で受け取ったIDをもとに、商品を削除
+ * 2. Drizzle ORM の eq() 関数で WHERE 条件を指定
+ * 3. データベースから削除を実行
+ * 4. revalidatePath("/") でトップページのキャッシュを無効化
+ * 5. 成功/失敗の結果を返す
+ *
+ * @param id - 削除する商品のID
+ * @returns 削除結果 { success: true } または { success: false, error: エラーメッセージ }
+ */
+export async function deleteProduct(id: string) {
+  try {
+    // データベースから商品を削除
+    // eq(products.id, id) → WHERE id = '指定されたID'
+    await db.delete(products).where(eq(products.id, id));
+
+    // トップページのキャッシュを無効化（一覧を最新化）
+    revalidatePath("/");
+
+    return { success: true as const };
+  } catch (error) {
+    console.error("商品削除エラー:", error);
+    return { success: false as const, error: "商品の削除に失敗しました" };
   }
 }
