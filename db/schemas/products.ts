@@ -9,6 +9,7 @@ export const products = pgTable("products", {
     .$defaultFn(() => nanoid()),
   name: text("name").notNull(),
   price: integer("price").notNull(),
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

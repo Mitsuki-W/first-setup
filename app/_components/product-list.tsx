@@ -53,6 +53,7 @@ export async function ProductList() {
             <th className="border border-gray-300 px-4 py-2 text-right">
               価格
             </th>
+            <th className="border border-gray-300 px-4 py-2 text-left">説明</th>
             <th className="border border-gray-300 px-4 py-2 text-left">
               登録日時
             </th>
@@ -71,6 +72,13 @@ export async function ProductList() {
                 ¥{product.price.toLocaleString()}
               </td>
               <td className="border border-gray-300 px-4 py-2 text-sm text-gray-600">
+                {product.description ? (
+                  <span className="line-clamp-2">{product.description}</span>
+                ) : (
+                  <span className="text-gray-400 italic">説明なし</span>
+                )}
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-sm text-gray-600">
                 {new Date(product.createdAt).toLocaleString("ja-JP")}
               </td>
               <td className="border border-gray-300 px-4 py-2 text-center">
@@ -80,6 +88,7 @@ export async function ProductList() {
                       id: product.id,
                       name: product.name,
                       price: product.price,
+                      description: product.description,
                     }}
                   />
                   <DeleteButton
