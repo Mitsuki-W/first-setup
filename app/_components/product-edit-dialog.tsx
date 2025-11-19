@@ -21,6 +21,7 @@ export function ProductEditDialog({
     id: string;
     name: string;
     price: number;
+    description: string | null;
   };
 }) {
   // ダイアログの開閉状態を管理
@@ -97,6 +98,24 @@ export function ProductEditDialog({
                   required
                   min="0"
                   step="1"
+                  disabled={isPending}
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              {/* 説明入力フィールド */}
+              <div>
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium mb-1"
+                >
+                  説明
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={3}
+                  defaultValue={product.description ?? ""}
                   disabled={isPending}
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />

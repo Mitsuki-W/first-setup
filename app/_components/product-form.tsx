@@ -62,6 +62,21 @@ export function ProductForm() {
         />
       </div>
 
+      {/* 説明入力フィールド */}
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium mb-1">
+          説明
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          rows={3}
+          disabled={isPending}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          placeholder="商品の説明を入力"
+        />
+      </div>
+
       {/* 送信ボタン */}
       <button
         type="submit"
